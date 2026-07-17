@@ -1,0 +1,30 @@
+name: Tier 2 / Preflight
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tier2.config.json"
+      - "spec/**"
+      - ".specify/**"
+      - "constitution.md"
+      - "AGENTS.md"
+      - ".github/workflows/tier2-*.yml"
+      - ".github/tier2/**"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Tier 2 preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/tier2/scripts/preflight.mjs

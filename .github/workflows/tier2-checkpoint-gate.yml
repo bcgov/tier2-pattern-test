@@ -1,0 +1,39 @@
+name: Tier 2 / Checkpoint gate
+
+on:
+  pull_request:
+    paths:
+      - "spec/**"
+      - "constitution.md"
+      - ".specify/**"
+      - "src/**"
+      - "apps/**"
+      - "services/**"
+      - "server/**"
+      - "deploy/**"
+      - "AGENTS.md"
+      - "docs/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  checkpoints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run checkpoint gate
+        env:
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: |
+          ROOT="${{ github.workspace }}"
+          STRICT=$(jq -r '.checkpoints.strict_placeholders // false' tier2.config.json)
+          PREFIXES=$(jq -r '.checkpoints.impl_path_prefixes // ["src/"] | join(",")' tier2.config.json)
+          node .github/tier2/scripts/check-checkpoints.mjs \
+            --root "$ROOT" \
+            --strict-placeholders "$STRICT" \
+            --require-plan-on-paths "$PREFIXES"

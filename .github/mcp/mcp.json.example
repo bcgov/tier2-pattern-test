@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "bc-design-system": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/to/ai-sdlc/bc-design-system-mcp/dist/index.js"]
+    },
+    "bcgov-sdlc": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/to/ai-sdlc/bcgov-agentic-glue/sdlc-mcp/dist/index.js"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_pat}"
+      }
+    }
+  }
+}

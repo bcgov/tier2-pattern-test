@@ -1,0 +1,13 @@
+# Apply with: gh label create / import
+- name: ready-for-agent
+  color: "0E6027"
+  description: Safe to assign coding agent
+- name: checkpoint-1-spec
+  color: "0052CC"
+  description: Spec sign-off checkpoint
+- name: checkpoint-2-plan
+  color: "0052CC"
+  description: Plan approval checkpoint
+- name: needs-spec-trace
+  color: "B60205"
+  description: PR missing spec/feature/task link

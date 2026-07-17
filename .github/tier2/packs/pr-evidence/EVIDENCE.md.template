@@ -1,0 +1,52 @@
+# PR evidence — {{TITLE}}
+
+| Field | Value |
+| --- | --- |
+| PR / branch | {{BRANCH}} |
+| Spec refs | {{SPEC_REFS}} |
+| Constitution articles touched | {{CONSTITUTION_REFS}} |
+| Tasks | {{TASK_REFS}} |
+| Authoring agent | {{AGENT}} |
+| Generated | {{GENERATED_AT}} |
+
+## Intent
+
+{{INTENT}}
+
+## Spec traceability
+
+| Scenario / requirement | Implemented? | Notes |
+| --- | --- | --- |
+{{SCENARIO_ROWS}}
+
+
+## Design system & accessibility
+
+| Check | Result |
+| --- | --- |
+| DS components used (list) | {{DS_COMPONENTS}} |
+| Tokens used (not hard-coded colour) | {{DS_TOKENS}} |
+| BC Sans imported | {{BC_SANS}} |
+| Manual a11y notes | {{A11Y_NOTES}} |
+
+## Public-service minimums
+
+Checklist IDs addressed this PR: {{MINIMUMS_IDS}}
+
+## Tests
+
+| Type | Command / path | Result |
+| --- | --- | --- |
+| Unit | {{UNIT}} | |
+| Acceptance / feature | {{ACCEPTANCE}} | |
+| A11y automation | {{A11Y_CI}} | |
+
+## Risks & follow-ups
+
+- {{RISKS}}
+
+## Human checkpoint 3
+
+Reviewer confirms: PR matches signed spec/plan; no constitution violations; ready to merge.
+
+- Reviewer: _______________ Date: _______________

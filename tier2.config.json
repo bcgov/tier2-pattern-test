@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "project": "tier2-pattern-test",
+  "tier": 2,
+  "include_tier1": true,
+  "checkpoints": {
+    "require_constitution": true,
+    "require_spec": true,
+    "require_plan_on_impl_paths": true,
+    "require_features": true,
+    "strict_placeholders": false,
+    "impl_path_prefixes": [
+      "src/",
+      "apps/",
+      "services/",
+      "packages/",
+      "deploy/",
+      "server/"
+    ]
+  },
+  "spec_review": {
+    "enabled": true,
+    "mode": "heuristic",
+    "paths": [
+      "src/",
+      "apps/",
+      "services/",
+      "server/",
+      "deploy/"
+    ],
+    "require_evidence": true,
+    "evidence_path": "docs/pr-evidence.md"
+  },
+  "coding_agent": {
+    "provider": "copilot",
+    "assign_label": "ready-for-agent",
+    "draft_prs_only": true
+  },
+  "mcp": {
+    "required": [
+      "bc-design-system",
+      "bcgov-sdlc",
+      "github"
+    ],
+    "optional": [
+      "figma"
+    ]
+  },
+  "agent": {
+    "mode": "heuristic",
+    "llm": {
+      "base_url": "https://api.openai.com/v1",
+      "model": "gpt-4o-mini",
+      "api_key_env": "TIER1_LLM_API_KEY",
+      "api_style": "openai"
+    }
+  }
+}

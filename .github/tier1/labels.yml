@@ -1,0 +1,28 @@
+# Apply with: gh label import (or create via preflight script)
+- name: needs-triage
+  color: "FBCA04"
+  description: Tier 1 — awaiting classification
+- name: needs-detail
+  color: "D93F0B"
+  description: Tier 1 — issue body too thin
+- name: bug
+  color: "D73A4A"
+  description: Something isn't working
+- name: enhancement
+  color: "A2EEEF"
+  description: New feature or request
+- name: documentation
+  color: "0075CA"
+  description: Docs improvements
+- name: security
+  color: "B60205"
+  description: Security-related
+- name: accessibility
+  color: "5319E7"
+  description: Accessibility / WCAG
+- name: ops
+  color: "0E8A16"
+  description: Deploy / pipeline / operations
+- name: tier1-docs-drift
+  color: "C5DEF5"
+  description: Docs may be behind code

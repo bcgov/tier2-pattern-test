@@ -1,0 +1,14 @@
+# Optional: copy into a test repo to force a CI failure and exercise CI diagnose.
+# Do NOT enable in production services.
+name: Tier 1 / Demo fail CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fail:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Intentional failure for Tier 1 CI diagnose demo"
+          exit 1

@@ -1,0 +1,35 @@
+name: Tier 1 / Docs drift
+
+on:
+  schedule:
+    # Mondays 15:00 UTC
+    - cron: "0 15 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Configure git identity
+        run: |
+          git config user.name "tier1-bot"
+          git config user.email "tier1-bot@users.noreply.github.com"
+      - name: Detect docs drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          TIER1_LLM_API_KEY: ${{ secrets.TIER1_LLM_API_KEY }}
+          TIER1_LLM_BASE_URL: ${{ secrets.TIER1_LLM_BASE_URL }}
+          TIER1_LLM_MODEL: ${{ vars.TIER1_LLM_MODEL }}
+        run: node .github/tier1/scripts/docs-drift.mjs

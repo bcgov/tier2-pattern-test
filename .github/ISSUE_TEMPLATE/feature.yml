@@ -1,0 +1,46 @@
+name: Feature / story
+description: Spec-traceable work for Tier 2 coding agents
+title: "feature: "
+labels: ["enhancement", "ready-for-agent"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Who is stuck and what hurts?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: Measurable user/business result
+    validations:
+      required: true
+  - type: input
+    id: spec_ref
+    attributes:
+      label: Spec reference
+      description: Path or section in spec/ (e.g. spec/features/apply.feature)
+      placeholder: spec/features/….feature
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Prefer Gherkin Given/When/Then
+      value: |
+        Given …
+        When …
+        Then …
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints acknowledged
+      options:
+        - label: WCAG 2.1 AA / B.C. Design System for UI
+        - label: No personal information without PIA
+        - label: OpenShift deploy target (or ADR exception)

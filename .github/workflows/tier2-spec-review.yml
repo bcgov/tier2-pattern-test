@@ -1,0 +1,28 @@
+name: Tier 2 / Spec review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  spec-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Spec-aware review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          TIER1_LLM_API_KEY: ${{ secrets.TIER1_LLM_API_KEY }}
+          TIER1_LLM_BASE_URL: ${{ secrets.TIER1_LLM_BASE_URL }}
+          TIER1_LLM_MODEL: ${{ vars.TIER1_LLM_MODEL }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: node .github/tier2/scripts/spec-review.mjs

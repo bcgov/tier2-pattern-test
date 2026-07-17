@@ -1,0 +1,28 @@
+name: Tier 1 / Preflight
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tier1.config.json"
+      - ".github/workflows/tier1-*.yml"
+      - ".github/tier1/**"
+      - "AGENTS.md"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/tier1/scripts/preflight.mjs

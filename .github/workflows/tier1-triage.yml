@@ -1,0 +1,27 @@
+name: Tier 1 / Issue triage
+
+on:
+  issues:
+    types: [opened, reopened, edited]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Triage issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TIER1_LLM_API_KEY: ${{ secrets.TIER1_LLM_API_KEY }}
+          TIER1_LLM_BASE_URL: ${{ secrets.TIER1_LLM_BASE_URL }}
+          TIER1_LLM_MODEL: ${{ vars.TIER1_LLM_MODEL }}
+        run: node .github/tier1/scripts/triage-issue.mjs

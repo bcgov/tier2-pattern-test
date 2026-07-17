@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "project": "tier2-pattern-test",
+  "agent": {
+    "mode": "gh-aw",
+    "llm": {
+      "base_url": "https://api.openai.com/v1",
+      "model": "gpt-4o-mini",
+      "api_key_env": "TIER1_LLM_API_KEY",
+      "api_style": "openai",
+      "temperature": 0.2
+    }
+  },
+  "triage": {
+    "enabled": true,
+    "min_body_length": 80,
+    "label_rules": [
+      {
+        "match": "bug",
+        "label": "bug"
+      },
+      {
+        "match": "broken",
+        "label": "bug"
+      },
+      {
+        "match": "error",
+        "label": "bug"
+      },
+      {
+        "match": "feature",
+        "label": "enhancement"
+      },
+      {
+        "match": "enhance",
+        "label": "enhancement"
+      },
+      {
+        "match": "docs",
+        "label": "documentation"
+      },
+      {
+        "match": "readme",
+        "label": "documentation"
+      },
+      {
+        "match": "security",
+        "label": "security"
+      },
+      {
+        "match": "a11y",
+        "label": "accessibility"
+      },
+      {
+        "match": "accessibility",
+        "label": "accessibility"
+      },
+      {
+        "match": "deploy",
+        "label": "ops"
+      },
+      {
+        "match": "pipeline",
+        "label": "ops"
+      }
+    ],
+    "default_label": "needs-triage",
+    "needs_detail_label": "needs-detail"
+  },
+  "docs_drift": {
+    "enabled": true,
+    "doc_paths": [
+      "docs/",
+      "README.md"
+    ],
+    "code_paths": [
+      "src/",
+      "app/",
+      "lib/"
+    ],
+    "open_pull_request": true,
+    "report_path": "docs/tier1-docs-drift-report.md"
+  },
+  "ci_diagnose": {
+    "enabled": true,
+    "ignore_workflows": [
+      "Tier 1 / Preflight",
+      "Tier 1 / Issue triage",
+      "Tier 1 / Docs drift",
+      "Tier 1 / CI diagnose",
+      "Tier 1 / Issue triage (gh-aw)",
+      "Tier 1 / Docs drift (gh-aw)",
+      "Tier 1 / CI diagnose (gh-aw)"
+    ],
+    "max_log_chars": 12000
+  },
+  "preflight": {
+    "require_labels": true
+  }
+}

@@ -1,0 +1,11 @@
+# Example job ideas — wire to your scanner images later.
+# Not a full workflow; copy fragments into service CI.
+
+# a11y:
+# - run: npx axe-cli http://localhost:3000 --exit
+
+# deps:
+# - uses: github/codeql-action or ministry standard dependency review
+
+# checkpoint:
+# - uses: ./.github/actions/checkpoint-gate
