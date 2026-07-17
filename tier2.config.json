@@ -33,8 +33,16 @@
   },
   "coding_agent": {
     "provider": "copilot",
+    "enabled": true,
+    "auto_assign": true,
     "assign_label": "ready-for-agent",
-    "draft_prs_only": true
+    "assignee": "copilot-swe-agent[bot]",
+    "base_branch": "main",
+    "draft_prs_only": true,
+    "custom_instructions": "",
+    "custom_agent": "",
+    "model": "",
+    "token_secret": "COPILOT_ASSIGN_TOKEN"
   },
   "mcp": {
     "required": [

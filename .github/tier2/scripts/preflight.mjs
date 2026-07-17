@@ -44,9 +44,15 @@ for (const w of [
   "tier2-preflight.yml",
   "tier2-checkpoint-gate.yml",
   "tier2-spec-review.yml",
+  "tier2-assign-coding-agent.yml",
 ]) {
   if (existsSync(path.join(root, ".github/workflows", w))) ok(`workflow ${w}`);
   else bad(`missing workflow ${w}`);
+}
+
+const cfgFull = existsSync(cfgPath) ? JSON.parse(readFileSync(cfgPath, "utf8")) : {};
+if (cfgFull.coding_agent?.auto_assign !== false) {
+  ok("coding_agent.auto_assign enabled (needs secret COPILOT_ASSIGN_TOKEN at runtime)");
 }
 
 if (existsSync(path.join(root, ".github/workflows", "tier2-spec-review.md"))) {
