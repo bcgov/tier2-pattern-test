@@ -25,15 +25,47 @@ Three ways to run triage / docs-drift / CI diagnose:
 - **`auto`** — use LLM when `TIER1_LLM_API_KEY` (or env named in `api_key_env`) is set; otherwise heuristic.  
 - **`llm`** — always attempt LLM; fall back to heuristic on API failure.  
 - **`gh-aw`** — Actions Node jobs **skip**; run compiled workflows from [`gh-aw/`](gh-aw/).  
-- **Azure OpenAI:** set `api_style` to `"azure"` and `base_url` to your deployment URL (`.../openai/deployments/{name}`), secret as API key.
+### Azure OpenAI / APIM
+
+**Native Azure:**
+
+```json
+"agent": {
+  "mode": "auto",
+  "llm": {
+    "api_style": "azure",
+    "base_url": "https://YOUR_RESOURCE.openai.azure.com/openai/deployments/YOUR_DEPLOYMENT",
+    "api_version": "2024-12-01-preview",
+    "api_key_env": "TIER1_LLM_API_KEY"
+  }
+}
+```
+
+**APIM front door** (subscription key) — use `azure-apim` (auto if host is `*.azure-api.net`):
+
+```json
+"agent": {
+  "mode": "auto",
+  "llm": {
+    "api_style": "azure-apim",
+    "base_url": "https://YOUR_APIM.azure-api.net/YOUR_PRODUCT/openai/deployments/YOUR_DEPLOYMENT",
+    "api_version": "2024-12-01-preview",
+    "api_key_env": "TIER1_LLM_API_KEY"
+  }
+}
+```
+
+`base_url` must include `/openai/deployments/{deployment-name}` (no trailing slash). APIM auth uses `Ocp-Apim-Subscription-Key`.
 
 ## Repo secrets / variables
 
 | Name | Used by |
 | --- | --- |
-| `TIER1_LLM_API_KEY` | LLM path |
-| `TIER1_LLM_BASE_URL` | optional override |
-| `TIER1_LLM_MODEL` | optional override |
+| `TIER1_LLM_API_KEY` | Azure / OpenAI API key |
+| `TIER1_LLM_BASE_URL` | optional override of `agent.llm.base_url` |
+| `TIER1_LLM_MODEL` | optional (ignored for Azure; deployment is in the URL) |
+| `TIER1_LLM_API_STYLE` | optional Actions var: `azure` |
+| `TIER1_LLM_API_VERSION` | optional Actions var (default `2024-08-01-preview`) |
 | `COPILOT_GITHUB_TOKEN` | gh-aw on personal repos / without org billing |
 
 ## Avoid double agents

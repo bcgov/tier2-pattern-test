@@ -2,13 +2,14 @@
   "version": 1,
   "project": "tier2-pattern-test",
   "agent": {
-    "mode": "gh-aw",
+    "mode": "auto",
     "llm": {
-      "base_url": "https://api.openai.com/v1",
-      "model": "gpt-4o-mini",
+      "base_url": "https://ai-services-hub-test-apim.azure-api.net/sdpr-invoice-automation/openai/deployments/gpt-5.1-codex-mini",
+      "model": "gpt-5.1-codex-mini",
       "api_key_env": "TIER1_LLM_API_KEY",
-      "api_style": "openai",
-      "temperature": 0.2
+      "api_style": "azure-apim",
+      "temperature": 0.2,
+      "api_version": "2024-12-01-preview"
     }
   },
   "triage": {

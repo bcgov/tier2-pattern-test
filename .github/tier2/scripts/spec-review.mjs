@@ -87,42 +87,68 @@ if (touchesImpl) {
   }
 }
 
-// Optional LLM narrative
+// Optional LLM narrative (OpenAI-compatible or Azure OpenAI — same secrets as Tier 1)
 let llmNote = "";
 const mode = (cfg.spec_review?.mode || cfg.agent?.mode || "heuristic").toLowerCase();
 const apiKey = process.env.TIER1_LLM_API_KEY || process.env.OPENAI_API_KEY;
 if ((mode === "llm" || mode === "auto") && apiKey && touchesImpl) {
   try {
-    const base = (process.env.TIER1_LLM_BASE_URL || cfg.agent?.llm?.base_url || "https://api.openai.com/v1").replace(
-      /\/$/,
-      "",
-    );
-    const model = process.env.TIER1_LLM_MODEL || cfg.agent?.llm?.model || "gpt-4o-mini";
-    const res = await fetch(`${base}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.2,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You review PRs against a BC Gov agentic SDLC. Comment briefly whether the change appears traced to spec/features and constitution constraints (WCAG, design system, PIA, OpenShift). Max 200 words.",
-          },
-          {
-            role: "user",
-            content: `PR title: ${prMeta.title}\nBody:\n${prMeta.body}\nFiles:\n${files.join("\n")}\nFindings so far: ${JSON.stringify(findings)}`,
-          },
-        ],
-      }),
-    });
+    const llm = cfg.agent?.llm || {};
+    let base = (process.env.TIER1_LLM_BASE_URL || llm.base_url || "").replace(/\/$/, "");
+    const deployment =
+      process.env.TIER1_LLM_MODEL ||
+      process.env.AZURE_OPENAI_DEPLOYMENT ||
+      llm.model ||
+      "gpt-4o-mini";
+    if (!base && process.env.AZURE_OPENAI_ENDPOINT) {
+      const ep = process.env.AZURE_OPENAI_ENDPOINT.replace(/\/$/, "");
+      base = /\/openai\/deployments\//i.test(ep)
+        ? ep
+        : `${ep}/openai/deployments/${deployment}`;
+    }
+    if (!base) base = "https://api.openai.com/v1";
+    let apiStyle = (llm.api_style || process.env.TIER1_LLM_API_STYLE || "openai").toLowerCase();
+    if (apiStyle === "azure" && /azure-api\.net/i.test(base)) apiStyle = "azure-apim";
+    const isAzure = apiStyle === "azure" || apiStyle === "azure-apim";
+    const headers = { "Content-Type": "application/json" };
+    let url = `${base}/chat/completions`;
+    const body = {
+      messages: [
+        {
+          role: "system",
+          content:
+            "You review PRs against a BC Gov agentic SDLC. Comment briefly whether the change appears traced to spec/features and constitution constraints (WCAG, design system, PIA, OpenShift). Max 200 words.",
+        },
+        {
+          role: "user",
+          content: `PR title: ${prMeta.title}\nBody:\n${prMeta.body}\nFiles:\n${files.join("\n")}\nFindings so far: ${JSON.stringify(findings)}`,
+        },
+      ],
+    };
+    if (isAzure) {
+      const apiVersion =
+        llm.api_version ||
+        process.env.TIER1_LLM_API_VERSION ||
+        process.env.AZURE_OPENAI_API_VERSION ||
+        "2024-12-01-preview";
+      url = `${base}/chat/completions?api-version=${encodeURIComponent(apiVersion)}`;
+      if (apiStyle === "azure-apim") {
+        headers["Ocp-Apim-Subscription-Key"] = apiKey;
+        headers["api-key"] = apiKey;
+      } else {
+        headers["api-key"] = apiKey;
+      }
+    } else {
+      headers.Authorization = `Bearer ${apiKey}`;
+      body.model = deployment;
+      body.temperature = llm.temperature ?? 0.2;
+    }
+    const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
     if (res.ok) {
       const data = await res.json();
       llmNote = data.choices?.[0]?.message?.content || "";
+    } else {
+      console.warn(`LLM HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
     }
   } catch (e) {
     console.warn("LLM review skipped:", e.message);
