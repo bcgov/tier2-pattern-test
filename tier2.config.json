@@ -20,7 +20,7 @@
   },
   "spec_review": {
     "enabled": true,
-    "mode": "heuristic",
+    "mode": "gh-aw",
     "paths": [
       "src/",
       "apps/",
@@ -47,7 +47,7 @@
     ]
   },
   "agent": {
-    "mode": "heuristic",
+    "mode": "gh-aw",
     "llm": {
       "base_url": "https://api.openai.com/v1",
       "model": "gpt-4o-mini",
