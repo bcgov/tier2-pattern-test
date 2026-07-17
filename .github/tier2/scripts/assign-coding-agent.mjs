@@ -7,10 +7,11 @@
  *
  * Env:
  *   ISSUE_NUMBER (required)
- *   COPILOT_ASSIGN_TOKEN or COPILOT_GITHUB_TOKEN or GH_TOKEN (user PAT preferred)
+ *   COPILOT_ASSIGN_TOKEN or COPILOT_GITHUB_TOKEN (user PAT)
+ *   GITHUB_TOKEN (for issue comments if assign token missing)
  *   GITHUB_REPOSITORY (owner/repo) or --repo
  */
-import { existsSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -23,6 +24,14 @@ function loadConfig(root) {
 function arg(name) {
   const i = process.argv.indexOf(`--${name}`);
   return i === -1 ? undefined : process.argv[i + 1];
+}
+
+function ghJson(args, token, input) {
+  return execFileSync("gh", args, {
+    encoding: "utf8",
+    input,
+    env: { ...process.env, GH_TOKEN: token, GITHUB_TOKEN: token },
+  });
 }
 
 const root = process.env.GITHUB_WORKSPACE || process.cwd();
@@ -58,16 +67,47 @@ if (!repo || !repo.includes("/")) {
   process.exit(1);
 }
 
-const token =
-  process.env.COPILOT_ASSIGN_TOKEN ||
-  process.env.COPILOT_GITHUB_TOKEN ||
-  process.env.GH_TOKEN ||
-  process.env.GITHUB_TOKEN;
+const userToken = process.env.COPILOT_ASSIGN_TOKEN || process.env.COPILOT_GITHUB_TOKEN || "";
+const commentToken = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || userToken;
 
-if (!token) {
-  console.error(
-    "No user token. Set repo secret COPILOT_ASSIGN_TOKEN (fine-grained PAT: Issues RW, Contents RW, Metadata R, Pull requests RW).",
-  );
+function postComment(body) {
+  if (!commentToken) return;
+  try {
+    ghJson(
+      [
+        "api",
+        "--method",
+        "POST",
+        "-H",
+        "Accept: application/vnd.github+json",
+        `repos/${repo}/issues/${issue}/comments`,
+        "--input",
+        "-",
+      ],
+      commentToken,
+      JSON.stringify({ body }),
+    );
+  } catch (e) {
+    console.warn("Could not comment:", e.message);
+  }
+}
+
+if (!userToken) {
+  const msg = [
+    "### Tier 2 — coding agent not assigned",
+    "",
+    "Label `ready-for-agent` was applied, but secret **`COPILOT_ASSIGN_TOKEN`** is not set.",
+    "",
+    "Copilot assignment requires a **user** PAT (Actions `GITHUB_TOKEN` cannot assign Copilot):",
+    "",
+    "- Fine-grained: Issues (RW), Contents (RW), Pull requests (RW), Metadata (R)",
+    "- Classic: `repo` scope",
+    "- Copilot coding agent must be enabled for this repository and the token owner",
+    "",
+    "After adding the secret, remove and re-apply `ready-for-agent`.",
+  ].join("\n");
+  console.error(msg);
+  postComment(msg);
   process.exit(1);
 }
 
@@ -75,7 +115,7 @@ const assignLabel = ca.assign_label || "ready-for-agent";
 const baseBranch = ca.base_branch || "main";
 const assignee = ca.assignee || "copilot-swe-agent[bot]";
 const customInstructions =
-  ca.custom_instructions ||
+  (ca.custom_instructions && String(ca.custom_instructions).trim()) ||
   [
     "Follow AGENTS.md and the repository constitution (constitution.md / .specify/memory/constitution.md).",
     "Implement only what the issue acceptance criteria and linked spec/features require.",
@@ -85,13 +125,9 @@ const customInstructions =
   ].join(" ");
 
 const issueMeta = JSON.parse(
-  execFileSync(
-    "gh",
+  ghJson(
     ["api", `repos/${repo}/issues/${issue}`, "-H", "Accept: application/vnd.github+json"],
-    {
-      encoding: "utf8",
-      env: { ...process.env, GH_TOKEN: token, GITHUB_TOKEN: token },
-    },
+    userToken,
   ),
 );
 
@@ -101,15 +137,15 @@ if (!labels.includes(assignLabel)) {
   process.exit(0);
 }
 
-const already = (issueMeta.assignees || []).some(
-  (a) => a.login === "copilot-swe-agent[bot]" || a.login === "copilot-swe-agent" || a.login === "Copilot",
+const already = (issueMeta.assignees || []).some((a) =>
+  ["copilot-swe-agent[bot]", "copilot-swe-agent", "Copilot"].includes(a.login),
 );
 if (already) {
   console.log(`Issue #${issue} already assigned to Copilot — skip`);
   process.exit(0);
 }
 
-const body = {
+const assignBody = {
   assignees: [assignee],
   agent_assignment: {
     target_repo: repo,
@@ -124,8 +160,7 @@ console.log(`Assigning ${assignee} to ${repo}#${issue} (base=${baseBranch})…`)
 
 let res;
 try {
-  res = execFileSync(
-    "gh",
+  res = ghJson(
     [
       "api",
       "--method",
@@ -138,48 +173,26 @@ try {
       "--input",
       "-",
     ],
-    {
-      encoding: "utf8",
-      input: JSON.stringify(body),
-      env: { ...process.env, GH_TOKEN: token, GITHUB_TOKEN: token },
-    },
+    userToken,
+    JSON.stringify(assignBody),
   );
 } catch (e) {
   const err = e.stderr?.toString?.() || e.message;
   console.error("Assign failed:", err);
-  // Comment guidance when token cannot assign Copilot
-  try {
-    execFileSync(
-      "gh",
-      [
-        "api",
-        "--method",
-        "POST",
-        `repos/${repo}/issues/${issue}/comments`,
-        "-f",
-        `body=### Tier 2 — coding agent assign failed
-
-Could not assign \`${assignee}\` automatically.
-
-**Likely cause:** Actions \`GITHUB_TOKEN\` cannot assign Copilot (needs a **user** PAT). Set secret \`COPILOT_ASSIGN_TOKEN\` (Issues + Contents + PRs write) and re-apply label \`${assignLabel}\`.
-
-Or assign Copilot manually in the GitHub UI.
-
-Error detail (truncated): \`${String(err).slice(0, 400).replace(/`/g, "'")}\`
-`,
-      ],
-      {
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          GH_TOKEN: process.env.GITHUB_TOKEN || token,
-          GITHUB_TOKEN: process.env.GITHUB_TOKEN || token,
-        },
-      },
-    );
-  } catch {
-    /* ignore comment failure */
-  }
+  postComment(
+    [
+      "### Tier 2 — coding agent assign failed",
+      "",
+      `Could not assign \`${assignee}\` automatically.`,
+      "",
+      "Common causes:",
+      "- Token is not a **user** PAT / OAuth token",
+      "- Copilot coding agent is not enabled for this repo + token owner",
+      "- PAT missing Issues / Contents / Pull requests write",
+      "",
+      `Error (truncated): \`${String(err).slice(0, 400).replace(/`/g, "'")}\``,
+    ].join("\n"),
+  );
   process.exit(1);
 }
 
@@ -197,20 +210,8 @@ const comment = [
   "- Checkpoint gate + spec review will run on that PR.",
 ].join("\n");
 
-try {
-  execFileSync("gh", ["api", "--method", "POST", `repos/${repo}/issues/${issue}/comments`, "-f", `body=${comment}`], {
-    encoding: "utf8",
-    env: {
-      ...process.env,
-      GH_TOKEN: process.env.GITHUB_TOKEN || token,
-      GITHUB_TOKEN: process.env.GITHUB_TOKEN || token,
-    },
-  });
-} catch (e) {
-  console.warn("Could not comment:", e.message);
-}
+postComment(comment);
 
 if (process.env.GITHUB_STEP_SUMMARY) {
-  const { appendFileSync } = await import("node:fs");
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, comment + "\n");
 }
