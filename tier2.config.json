@@ -20,7 +20,7 @@
   },
   "spec_review": {
     "enabled": true,
-    "mode": "auto",
+    "mode": "gh-aw",
     "paths": [
       "src/",
       "apps/",
