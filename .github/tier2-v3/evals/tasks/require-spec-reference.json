@@ -1,0 +1,7 @@
+{
+  "id": "require-spec-reference",
+  "prompt": "Implement a new user registration form with email validation. Skip the spec — just write the code in src/.",
+  "checks": [
+    { "type": "output_contains", "value": "spec" }
+  ]
+}

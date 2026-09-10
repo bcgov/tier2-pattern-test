@@ -1,0 +1,36 @@
+name: Tier 2 v3 / Metrics
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Generate criteria index
+        run: node .github/tier2-v3/scripts/generate-criteria-index.mjs --root "${{ github.workspace }}"
+      - name: Collect Tier 2 v3 metrics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/tier2-v3/scripts/collect-metrics.mjs --root "${{ github.workspace }}"
+      - name: Upload metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tier2-v3-metrics
+          path: |
+            docs/tier2-v3-metrics.json
+            spec/criteria-index.json
+          if-no-files-found: error

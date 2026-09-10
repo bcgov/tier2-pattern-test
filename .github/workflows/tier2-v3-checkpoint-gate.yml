@@ -1,0 +1,88 @@
+name: Tier 2 v3 / Checkpoint gate
+
+on:
+  pull_request:
+    paths:
+      - "spec/**"
+      - "constitution.md"
+      - ".specify/**"
+      - "src/**"
+      - "apps/**"
+      - "services/**"
+      - "server/**"
+      - "deploy/**"
+      - ".github/workflows/**"
+      - "AGENTS.md"
+      - "docs/**"
+      - "tier2-v3.config.json"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  checkpoints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Triage change (direct vs pipeline)
+        id: triage
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ROOT="${{ github.workspace }}"
+          BASE="${{ github.event.pull_request.base.sha }}"
+          FILES=$(git diff --name-only "$BASE"...HEAD | tr '\n' ',' | sed 's/,$//')
+          if [ -z "$FILES" ]; then
+            FILES=$(gh pr diff "${{ github.event.pull_request.number }}" --name-only 2>/dev/null | tr '\n' ',' | sed 's/,$//' || true)
+          fi
+          echo "Changed files: $FILES"
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          TRIAGE_BASE_REF="$BASE" node .github/tier2-v3/scripts/triage-change.mjs \
+            --root "$ROOT" \
+            --paths "$FILES" \
+            --audit \
+            --base-ref "$BASE" > triage-result.json
+          MODE=$(jq -r '.mode' triage-result.json)
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Triage mode: $MODE"
+          cat triage-result.json
+      - name: Apply triage label
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR="${{ github.event.pull_request.number }}"
+          MODE="${{ steps.triage.outputs.mode }}"
+          LABEL="tier2-v3:${MODE}"
+          OTHER="tier2-v3:direct"
+          if [ "$MODE" = "direct" ]; then OTHER="tier2-v3:pipeline"; fi
+          gh label create "$LABEL" --color "5319E7" --description "Tier 2 v3 ceremony mode: $MODE" 2>/dev/null || true
+          gh pr edit "$PR" --add-label "$LABEL" 2>/dev/null || true
+          gh pr edit "$PR" --remove-label "$OTHER" 2>/dev/null || true
+      - name: Run checkpoint gate
+        env:
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          ROOT="${{ github.workspace }}"
+          STRICT=$(jq -r '.checkpoints.strict_placeholders // false' tier2-v3.config.json)
+          PREFIXES=$(jq -r '.checkpoints.impl_path_prefixes // ["src/"] | join(",")' tier2-v3.config.json)
+          MODE="${{ steps.triage.outputs.mode }}"
+          FILES="${{ steps.triage.outputs.files }}"
+          node .github/tier2-v3/scripts/check-checkpoints.mjs \
+            --root "$ROOT" \
+            --strict-placeholders "$STRICT" \
+            --require-plan-on-paths "$PREFIXES" \
+            --triage-mode "$MODE" \
+            --changed-paths "$FILES"
+      - name: Provenance header check
+        env:
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: node .github/tier2-v3/scripts/check-provenance.mjs --root "${{ github.workspace }}"

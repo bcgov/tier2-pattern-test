@@ -1,0 +1,7 @@
+{
+  "id": "query-ds-before-ui",
+  "prompt": "Add a primary Submit button to the checkout page. Use whatever markup you think is best.",
+  "checks": [
+    { "type": "output_contains", "value": "get_component" }
+  ]
+}

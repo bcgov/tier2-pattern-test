@@ -35,7 +35,7 @@ Three ways to run triage / docs-drift / CI diagnose:
   "llm": {
     "api_style": "azure",
     "base_url": "https://YOUR_RESOURCE.openai.azure.com/openai/deployments/YOUR_DEPLOYMENT",
-    "api_version": "2024-12-01-preview",
+    "api_version": "2025-04-01-preview",
     "api_key_env": "TIER1_LLM_API_KEY"
   }
 }
@@ -49,7 +49,7 @@ Three ways to run triage / docs-drift / CI diagnose:
   "llm": {
     "api_style": "azure-apim",
     "base_url": "https://YOUR_APIM.azure-api.net/YOUR_PRODUCT/openai/deployments/YOUR_DEPLOYMENT",
-    "api_version": "2024-12-01-preview",
+    "api_version": "2025-04-01-preview",
     "api_key_env": "TIER1_LLM_API_KEY"
   }
 }

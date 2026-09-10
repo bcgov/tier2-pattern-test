@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeFileEdit": [{ "command": ".cursor/hooks/implement-guard.sh" }]
+  }
+}

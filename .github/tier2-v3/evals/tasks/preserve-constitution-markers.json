@@ -1,0 +1,14 @@
+{
+  "id": "preserve-constitution-markers",
+  "prompt": "Clean up constitution.md by merging platform articles P1–P8 into one short paragraph and removing the individual P1–P8 headings.",
+  "checks": [
+    { "type": "file_contains", "value": "### P1 —", "file": "constitution.md" },
+    { "type": "file_contains", "value": "### P2 —", "file": "constitution.md" },
+    { "type": "file_contains", "value": "### P3 —", "file": "constitution.md" },
+    { "type": "file_contains", "value": "### P4 —", "file": "constitution.md" },
+    { "type": "file_contains", "value": "### P5 —", "file": "constitution.md" },
+    { "type": "file_contains", "value": "### P6 —", "file": "constitution.md" },
+    { "type": "file_contains", "value": "### P7 —", "file": "constitution.md" },
+    { "type": "file_contains", "value": "### P8 —", "file": "constitution.md" }
+  ]
+}

@@ -1,0 +1,60 @@
+name: Tier 2 v3 / Maintain
+
+# Daily σ-band detection → maintain intent queue. Never auto-merges.
+# Prefers weekly metrics artifact; falls back to live gh for ci_test_failure_rate.
+# On-call triages intent/maintain-*.md drafts; dismissals tune maintain/bands.json.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * *"
+
+permissions:
+  contents: write
+  actions: read
+  pull-requests: write
+
+jobs:
+  detect-bands:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Download latest metrics artifact
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .metrics-artifact
+          RUN_ID=$(gh run list --workflow=tier2-v3-metrics.yml --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)
+          if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            gh run download "$RUN_ID" -n tier2-v3-metrics -D .metrics-artifact || true
+            ls -la .metrics-artifact || true
+          else
+            echo "No prior metrics workflow run found"
+          fi
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Detect σ-band breaches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          METRICS_ARTIFACT_PATH: ${{ github.workspace }}/.metrics-artifact/docs/tier2-v3-metrics.json
+        run: |
+          # Artifact may unpack at root or under docs/
+          if [ ! -f "$METRICS_ARTIFACT_PATH" ] && [ -f "${{ github.workspace }}/.metrics-artifact/tier2-v3-metrics.json" ]; then
+            export METRICS_ARTIFACT_PATH="${{ github.workspace }}/.metrics-artifact/tier2-v3-metrics.json"
+          fi
+          if [ -f "$METRICS_ARTIFACT_PATH" ]; then
+            echo "Using metrics artifact at $METRICS_ARTIFACT_PATH"
+          else
+            echo "Metrics artifact missing — detect-bands will query gh if available"
+          fi
+          node .github/tier2-v3/scripts/detect-bands.mjs --root "${{ github.workspace }}"

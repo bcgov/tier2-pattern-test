@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "metrics": [
+    {
+      "metric": "ci_test_failure_rate",
+      "baseline": "rolling_30d",
+      "rules": "western_electric",
+      "source": "metrics_artifact_or_gh",
+      "tiers": {
+        "1sigma": { "action": "log" },
+        "2sigma": { "action": "diagnose", "tools": "Read,Grep,Bash(gh run view *)" },
+        "3sigma": { "action": "propose", "routes": ["intent_pr"] }
+      }
+    }
+  ]
+}
