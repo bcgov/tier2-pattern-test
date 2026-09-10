@@ -1,0 +1,40 @@
+name: Tier 2 v3 / Harness evals
+
+on:
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "constitution.md"
+      - ".github/tier2-v3/**"
+      - "REVIEW.md"
+      - "spec/features/**"
+      - "spec/criteria-index.json"
+
+permissions:
+  contents: read
+
+jobs:
+  harness-evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Structural harness checks
+        env:
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: node .github/tier2-v3/evals/structural-checks.mjs --root "${{ github.workspace }}"
+      - name: Harness evals (simulate task harness)
+        continue-on-error: true
+        env:
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: node .github/tier2-v3/evals/run-evals.mjs --simulate
+      - name: Post eval summary
+        if: always()
+        run: |
+          {
+            echo "### Tier 2 v3 harness evals"
+            echo ""
+            echo "Structural checks are blocking. Simulate mode (canned agent responses) remains warn-only."
+          } >> "$GITHUB_STEP_SUMMARY"

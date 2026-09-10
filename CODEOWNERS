@@ -1,0 +1,8 @@
+# Tier 2 v2 — do not let implementation agents self-modify gates or acceptance criteria.
+# Replace @bcgov/platform-architecture with your team's GitHub team or named owners.
+
+/.github/                          @bcgov/platform-architecture
+/constitution.md                   @bcgov/platform-architecture
+/.specify/memory/constitution.md   @bcgov/platform-architecture
+/spec/features/                    @bcgov/qa-leads
+/tier2-v3.config.json              @bcgov/platform-architecture

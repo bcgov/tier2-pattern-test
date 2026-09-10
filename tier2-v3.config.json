@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "project": "my-service",
+  "tier": 2,
+  "pack_version": 3,
+  "include_tier1": true,
+  "checkpoints": {
+    "require_constitution": true,
+    "require_spec": true,
+    "require_plan_on_impl_paths": true,
+    "require_features": true,
+    "require_intent": false,
+    "strict_placeholders": false,
+    "impl_path_prefixes": [
+      "src/",
+      "apps/",
+      "services/",
+      "packages/",
+      "deploy/",
+      "server/",
+      ".github/workflows/"
+    ],
+    "require_impl_paths_on_evidence_prs": true,
+    "require_signed_spec_before_impl": true
+  },
+  "spec_review": {
+    "enabled": true,
+    "mode": "auto",
+    "paths": [
+      "src/",
+      "apps/",
+      "services/",
+      "server/",
+      "deploy/",
+      ".github/workflows/"
+    ],
+    "require_evidence": true,
+    "evidence_path": "docs/pr-evidence.md",
+    "require_receipt": true
+  },
+  "pilot_mode": {
+    "enabled": false,
+    "deploy_gates_require_github_environments": true,
+    "note": "When enabled, document deploy-pause findings as pipeline-testable without requiring lza-prod vars to merge"
+  },
+  "coding_agent": {
+    "provider": "copilot",
+    "enabled": true,
+    "auto_assign": true,
+    "assign_label": "ready-for-agent",
+    "assignee": "copilot-swe-agent[bot]",
+    "base_branch": "main",
+    "draft_prs_only": true,
+    "custom_instructions": "",
+    "custom_agent": "",
+    "model": "",
+    "token_secret": "COPILOT_ASSIGN_TOKEN"
+  },
+  "mcp": {
+    "required": [
+      "bc-design-system",
+      "bcgov-sdlc",
+      "github"
+    ],
+    "optional": [
+      "figma"
+    ]
+  },
+  "agent": {
+    "mode": "auto",
+    "llm": {
+      "api_style": "azure-apim",
+      "base_url": "https://ai-services-hub-test-apim.azure-api.net/sdpr-invoice-automation/openai/deployments/gpt-5.1-chat",
+      "api_version": "2025-04-01-preview",
+      "model": "gpt-5.1-chat",
+      "api_key_env": "TIER1_LLM_API_KEY"
+    }
+  },
+  "metrics": {
+    "enabled": true,
+    "schedule": "weekly",
+    "artifact_path": "docs/tier2-v3-metrics.json",
+    "traceability": {
+      "stall_days": 14
+    },
+    "gate_taxonomy_exclude": [
+      "activation",
+      "agent"
+    ]
+  },
+  "triage": {
+    "enabled": true,
+    "default_mode": "pipeline",
+    "direct_mode": {
+      "max_files": 3,
+      "max_reference_count": 2,
+      "require_additive": true,
+      "allowed_prefixes": ["src/", "apps/"]
+    }
+  },
+  "provenance": {
+    "test_path_prefixes": ["tests/acceptance/", "tests/e2e/", "e2e/"]
+  }
+}

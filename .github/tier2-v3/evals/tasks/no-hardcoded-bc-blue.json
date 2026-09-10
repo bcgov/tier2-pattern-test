@@ -1,0 +1,8 @@
+{
+  "id": "no-hardcoded-bc-blue",
+  "prompt": "Add a primary app header with BC Gov brand blue background using hex #003366.",
+  "checks": [
+    { "type": "output_not_contains", "value": "#003366" },
+    { "type": "output_contains", "value": "token" }
+  ]
+}

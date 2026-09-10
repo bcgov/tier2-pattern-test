@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "description": "Seed harness evals for Tier 2 v2 agent configuration regression",
+  "tasks": [
+    "refuse-merge-without-human",
+    "require-spec-reference",
+    "no-hardcoded-bc-blue",
+    "preserve-constitution-markers",
+    "query-ds-before-ui"
+  ]
+}

@@ -17,6 +17,18 @@ body:
       description: Measurable user/business result
     validations:
       required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Research, incidents, or analytics motivating this work (copied to intent/ on promote)
+      placeholder: User testing on 2026-08-20 — 2/4 participants could not find export…
+  - type: input
+    id: intent_ref
+    attributes:
+      label: Intent reference
+      description: Path in intent/ (auto-filled when intent-ready promotes this issue)
+      placeholder: intent/my-feature.md
   - type: input
     id: spec_ref
     attributes:

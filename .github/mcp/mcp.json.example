@@ -1,4 +1,5 @@
 {
+  "_comment": "Copy into your local coding agent's MCP settings. Replace ABSOLUTE paths.",
   "mcpServers": {
     "bc-design-system": {
       "command": "node",

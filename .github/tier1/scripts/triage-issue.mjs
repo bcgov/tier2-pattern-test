@@ -42,6 +42,7 @@ const allowedLabels = [
   ...(cfg.triage.label_rules || []).map((r) => r.label),
   cfg.triage.default_label,
   cfg.triage.needs_detail_label,
+  cfg.triage.intent_ready_label,
 ].filter(Boolean);
 
 const heuristic = heuristicTriage(cfg, issue);
@@ -55,6 +56,13 @@ if (mode === "llm") {
 
 const existing = new Set((issue.labels || []).map((l) => l.name));
 const toAdd = (decision.labels || []).filter((l) => allowedLabels.includes(l) && !existing.has(l));
+
+if (cfg.triage?.promote_intent && !decision.needsDetail && issueHasIntentFields(issue.body)) {
+  const intentLabel = cfg.triage.intent_ready_label || "intent-ready";
+  if (allowedLabels.includes(intentLabel) && !existing.has(intentLabel)) {
+    toAdd.push(intentLabel);
+  }
+}
 
 for (const label of new Set(toAdd)) {
   ensureLabel(label);
@@ -96,6 +104,36 @@ function heuristicTriage(cfg, issue) {
     ].join("\n");
   }
   return { labels: [...new Set(labels)], needsDetail, comment };
+}
+
+function issueHasIntentFields(body) {
+  const text = body || "";
+  const problem = extractIssueSection(text, ["Problem"]);
+  const outcome = extractIssueSection(text, ["Outcome", "Proposed outcome"]);
+  return Boolean(problem && outcome);
+}
+
+function extractIssueSection(body, names) {
+  const wanted = names.map((n) => n.toLowerCase());
+  const lines = body.split(/\r?\n/);
+  let capture = false;
+  let level = 0;
+  const parts = [];
+  for (const line of lines) {
+    const heading = line.match(/^(#{1,6})\s+(.+?)\s*$/);
+    if (heading) {
+      const name = heading[2].replace(/[*_`]/g, "").trim().toLowerCase();
+      if (wanted.some((w) => name === w || name.startsWith(`${w} `))) {
+        capture = true;
+        level = heading[1].length;
+        continue;
+      }
+      if (capture && heading[1].length <= level) break;
+      continue;
+    }
+    if (capture) parts.push(line);
+  }
+  return parts.join("\n").trim();
 }
 
 async function llmTriage(cfg, issue, allowedLabels, fallback) {

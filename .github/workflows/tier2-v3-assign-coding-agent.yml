@@ -1,0 +1,32 @@
+name: Tier 2 v3 / Assign coding agent
+
+# On label ready-for-agent → assign copilot-swe-agent[bot] (draft PR).
+# Requires repo secret COPILOT_ASSIGN_TOKEN (user PAT). GITHUB_TOKEN cannot assign Copilot.
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  assign:
+    if: github.event.label.name == 'ready-for-agent'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Assign Copilot coding agent
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          COPILOT_ASSIGN_TOKEN: ${{ secrets.COPILOT_ASSIGN_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: node .github/tier2-v3/scripts/assign-coding-agent.mjs
